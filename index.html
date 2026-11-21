@@ -1,70 +1,2291 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alexander Gym</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="logos/alexander-gym-sin fondo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Rescate en Choloma: De Las Torres a la López Arellano</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-display: 'Fredoka', sans-serif;
+      --font-sans: 'Inter', sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b131e;
+      font-family: var(--font-sans);
+      color: #f8fafc;
+    }
+    .font-display {
+      font-family: var(--font-display);
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #0d1b2a;
+    }
+    canvas#world-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    .glass-panel {
+      background: rgba(13, 23, 38, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .btn-game {
+      transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.38), 0 6px 14px rgba(0, 0, 0, 0.28);
+    }
+    .btn-game:hover {
+      filter: brightness(1.07);
+    }
+    .btn-game:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    .animate-float-slow {
+      animation: floatSlow 2.6s ease-in-out infinite;
+    }
+    /* Custom scrollbar for quest/shop modals */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 999px;
+    }
+  </style>
 </head>
 <body>
+  <div id="game-container">
+    <!-- Lienzo principal del mundo 2D -->
+    <canvas id="world-canvas"></canvas>
 
-    <!--baner cuenta regresiva-->
-    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-        <div class="elfsight-app-1504a6a1-c9e7-4826-9f14-8ec20d7fbd58"></div>
+    <!-- Pantalla de Inicio para ingresar nombre del jugador -->
+    <div id="start-screen" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="glass-panel rounded-3xl max-w-lg w-full p-6 sm:p-7 border-2 border-emerald-400/40 text-center shadow-2xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/35 text-emerald-300 text-xs font-bold mb-3">
+          <span>🇭🇳</span>
+          <span>CHOLOMA • AVENTURA DE MUNDO ABIERTO</span>
+        </div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-white leading-tight mb-2">
+          Rescate en Choloma:<br/>
+          <span class="text-amber-300">De Las Torres a la López Arellano</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-300 mb-5 leading-relaxed">
+          Una sombra oscura ha invadido la <b>Colonia López Arellano</b> y controla a sus habitantes. Parte desde la <b>Colonia Las Torres</b>, encuentra armas de luz, reúne a tus 6 amigos (<b>Junior, Cristian, Daniel Boly, Lesly, Ashley y Douglas</b>) y libera la colonia para que todos vivan en paz.
+        </p>
 
-        <!--Burbuja flot. subscribete-->
-    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-        <div class="elfsight-app-140a1bff-6316-4fa6-89d5-9f489ce9b156"></div>
+        <div class="text-left mb-4">
+          <label for="player-name-input" class="block text-xs font-bold uppercase tracking-wider text-emerald-300 mb-1.5">
+            Tu Nombre de Héroe / Líder
+          </label>
+          <input
+            id="player-name-input"
+            type="text"
+            maxlength="18"
+            placeholder="Escribe tu nombre aquí..."
+            class="w-full px-4 py-3 rounded-2xl bg-slate-900/90 border-2 border-white/15 focus:border-emerald-400 outline-none text-white font-semibold text-sm sm:text-base placeholder-slate-500 transition"
+          />
+        </div>
 
-    <!--menu interactivo-->
-    <header>
-        <div class="logo"><a href="index.html"><img src="logos/alexander-gym-sin fondo.png" alt="Logo fitness" height="60px" width="150px"></a> </a></div>
-        <input type="checkbox" id="nav-toggle" class="nav-toggle">
-        <nav>
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="Acerca del gym.html">Acerca del gym</a></li>
-                <li><a href="Productos para ti.html">Productos para ti</a></li>
-                <li><a href="Salud y vida.html">Salud y vida</a></li>
-                <li><a href="contacto.html">Contacto</a></li>
+        <button id="btn-start-game" type="button" class="btn-game w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-slate-950 font-display font-bold text-base sm:text-lg tracking-wide cursor-pointer">
+          🚀 Iniciar Misión en Las Torres
+        </button>
+
+        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
+          <span>🕹️ WASD / Flechas / Joystick</span>
+          <span>🔫 Clic / Espacio: Atacar</span>
+          <span>💬 E: Reclutar / Recoger</span>
+          <span>🔢 1-3: Cambiar Arma</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD Superior Izquierdo: Estadísticas, Salud, Energía, Aliados y Misión -->
+    <div id="hud-top-left" class="pointer-events-none fixed top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 flex flex-col gap-2 max-w-[275px] sm:max-w-[335px]">
+      <div class="glass-panel rounded-2xl p-2.5 sm:p-3 pointer-events-auto">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-sm font-bold shrink-0">
+              🛡️
+            </span>
+            <div class="truncate">
+              <div id="player-hud-name" class="font-display text-xs sm:text-sm font-bold text-white truncate">
+                Aventurero
+              </div>
+              <div id="biome-badge" class="text-[11px] font-semibold text-amber-300 truncate">
+                Colonia Las Torres
+              </div>
+            </div>
+          </div>
+          <span id="corruption-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-400/35 shrink-0">
+            Mal: 100%
+          </span>
+        </div>
+
+        <!-- Barra de Salud -->
+        <div class="mb-1.5">
+          <div class="flex justify-between text-[11px] font-semibold mb-0.5">
+            <span class="text-rose-300">❤️ Vida</span>
+            <span id="hp-text" class="text-slate-200">120/120</span>
+          </div>
+          <div class="w-full h-2.5 rounded-full bg-slate-900/90 overflow-hidden border border-white/10">
+            <div id="hp-bar" class="h-full bg-gradient-to-r from-rose-600 via-rose-500 to-pink-400 transition-all duration-150 rounded-full" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Barra de Energía / Sprint -->
+        <div class="mb-2">
+          <div class="flex justify-between text-[11px] font-semibold mb-0.5">
+            <span class="text-sky-300">⚡ Energía</span>
+            <span id="stamina-text" class="text-slate-200">100%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-900/90 overflow-hidden border border-white/10">
+            <div id="stamina-bar" class="h-full bg-gradient-to-r from-sky-500 via-cyan-400 to-teal-300 transition-all duration-100 rounded-full" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Escuadrón de Aliados Reclutados (6 amigos) -->
+        <div class="pt-1.5 border-t border-white/10">
+          <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+            <span class="text-emerald-300">🤝 Escuadrón Aliado</span>
+            <span id="allies-count-badge" class="text-amber-300">0/6 Unidos</span>
+          </div>
+          <div id="allies-roster-pills" class="flex flex-wrap gap-1"></div>
+        </div>
+      </div>
+
+      <!-- Rastreador compacto de Misión Activa -->
+      <button id="quest-hud-btn" type="button" class="glass-panel rounded-2xl px-3 py-2 text-left pointer-events-auto hover:border-emerald-400/50 transition cursor-pointer">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[10px] uppercase tracking-wider font-bold text-emerald-300">🎯 Objetivo Principal</span>
+          <span class="text-[10px] text-slate-300 underline">Diario</span>
+        </div>
+        <div id="active-quest-title" class="text-xs font-bold text-white mt-0.5 truncate">Reúne a tus aliados en Las Torres</div>
+        <div id="active-quest-progress" class="text-[11px] text-slate-300 truncate">Avanza hacia la Colonia López Arellano</div>
+      </button>
+    </div>
+
+    <!-- HUD Superior Derecho: Botones Rápidos y Minimapa -->
+    <div id="hud-top-right" class="fixed top-2.5 right-2.5 sm:top-4 sm:right-4 z-20 flex flex-col items-end gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btn-heal-quick" type="button" title="Usar Botiquín / Poción (H)" class="btn-game glass-panel px-2.5 h-9 sm:h-10 rounded-xl flex items-center justify-center gap-1 text-xs sm:text-sm font-bold text-rose-300 cursor-pointer">
+          <span>🩹</span>
+          <span id="potions-hud-count">3</span>
+        </button>
+        <button id="btn-quests" type="button" title="Misiones y Progreso" class="btn-game glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-base sm:text-lg cursor-pointer">
+          📜
+        </button>
+        <button id="btn-sound" type="button" title="Activar/Silenciar Sonido" class="btn-game glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-base sm:text-lg cursor-pointer">
+          🔊
+        </button>
+        <button id="btn-help" type="button" title="Guía y Controles" class="btn-game glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-base sm:text-lg cursor-pointer">
+          ❓
+        </button>
+      </div>
+
+      <!-- Minimapa -->
+      <div class="glass-panel rounded-2xl p-1.5 relative">
+        <canvas id="minimap-canvas" width="144" height="144" class="w-[110px] h-[110px] sm:w-[144px] sm:h-[144px] rounded-xl block bg-slate-950/90"></canvas>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 px-1 pt-1 text-[9px] text-slate-300">
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white inline-block"></span>Tú</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>Aliados</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-300 inline-block"></span>Armas</span>
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-fuchsia-400 inline-block"></span>Núcleos Mal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector Rápido de Armas (Centro Inferior) -->
+    <div id="weapon-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 pointer-events-auto"></div>
+
+    <!-- Notificación Toast Flotante -->
+    <div id="toast-banner" class="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-all duration-300 -translate-y-2 max-w-[92vw]">
+      <div class="glass-panel border-emerald-400/50 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold text-white flex items-center gap-2 shadow-xl">
+        <span id="toast-icon">✨</span>
+        <span id="toast-text">¡Bienvenido a Colonia Las Torres!</span>
+      </div>
+    </div>
+
+    <!-- Controles Táctiles / en Pantalla -->
+    <div id="touch-controls-left" class="fixed bottom-4 left-3 sm:bottom-6 sm:left-6 z-20 flex flex-col items-center gap-2">
+      <div id="joystick-zone" class="relative w-26 h-26 sm:w-32 sm:h-32 rounded-full glass-panel flex items-center justify-center touch-none">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border border-dashed border-white/20 flex items-center justify-center text-[10px] text-slate-400/70 pointer-events-none">
+          WASD
+        </div>
+        <div id="joystick-knob" class="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 border-2 border-white/80 shadow-lg flex items-center justify-center text-white font-bold text-xs pointer-events-none transition-transform duration-75" style="transform: translate(0px, 0px);">
+          ✦
+        </div>
+      </div>
+    </div>
+
+    <div id="touch-controls-right" class="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-20 flex items-end gap-2 sm:gap-2.5">
+      <button id="btn-interact" type="button" class="btn-game glass-panel px-3 py-3 rounded-2xl flex flex-col items-center justify-center text-emerald-300 border-emerald-400/40 cursor-pointer">
+        <span class="text-lg leading-none">🤝</span>
+        <span class="text-[10px] font-bold mt-1">HABLAR [E]</span>
+      </button>
+      <button id="btn-sprint" type="button" class="btn-game glass-panel px-3 py-3 rounded-2xl flex flex-col items-center justify-center text-sky-300 border-sky-400/35 cursor-pointer">
+        <span class="text-lg leading-none">⚡</span>
+        <span class="text-[10px] font-bold mt-1">CORRER</span>
+      </button>
+      <button id="btn-action" type="button" class="btn-game px-4 py-3.5 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-slate-950 border-2 border-amber-200/80 flex flex-col items-center justify-center cursor-pointer">
+        <span id="action-btn-icon" class="text-xl sm:text-2xl leading-none">🔦</span>
+        <span id="action-btn-label" class="text-[10px] sm:text-[11px] font-extrabold mt-1 tracking-wide">ATACAR</span>
+      </button>
+    </div>
+
+    <!-- Caja de Diálogo con Aliados y Vecinos -->
+    <div id="dialogue-modal" class="hidden fixed inset-x-0 bottom-24 sm:bottom-20 mx-auto z-40 w-[94vw] max-w-2xl px-1">
+      <div class="glass-panel rounded-3xl p-4 sm:p-5 border-2 border-emerald-300/40 shadow-2xl">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-center gap-3">
+            <div id="dialogue-avatar" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400/30 to-sky-500/30 border border-white/20 flex items-center justify-center text-2xl shrink-0">
+              🧑
+            </div>
+            <div>
+              <div id="dialogue-speaker" class="font-display text-base sm:text-lg font-bold text-amber-300">Junior</div>
+              <div id="dialogue-role" class="text-[11px] text-emerald-300/90 font-medium">Aliado de Colonia Las Torres</div>
+            </div>
+          </div>
+          <button id="btn-close-dialogue" type="button" class="btn-game w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 flex items-center justify-center text-sm font-bold cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <p id="dialogue-text" class="text-xs sm:text-sm text-slate-100 leading-relaxed mb-4 min-h-[44px]"></p>
+
+        <div id="dialogue-choices" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Misiones -->
+    <div id="quests-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+      <div class="glass-panel rounded-3xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden border border-white/20">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">📜</span>
+            <div>
+              <h2 class="font-display text-lg sm:text-xl font-bold text-white">Bitácora de Liberación</h2>
+              <p class="text-xs text-slate-300">De Colonia Las Torres hasta la Colonia López Arellano</p>
+            </div>
+          </div>
+          <button id="btn-close-quests" type="button" class="btn-game w-9 h-9 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center font-bold cursor-pointer">
+            ✕
+          </button>
+        </div>
+        <div id="quests-list" class="p-4 sm:p-5 space-y-3 overflow-y-auto custom-scroll"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Ayuda / Guía -->
+    <div id="help-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+      <div class="glass-panel rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-white/20">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🧭</span>
+            <div>
+              <h2 class="font-display text-lg sm:text-xl font-bold text-white">Guía de Misión en Choloma</h2>
+              <p class="text-xs text-slate-300">Controles, armas de luz y escuadrón aliado</p>
+            </div>
+          </div>
+          <button id="btn-close-help" type="button" class="btn-game w-9 h-9 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center font-bold cursor-pointer">
+            ✕
+          </button>
+        </div>
+        <div class="p-4 sm:p-5 space-y-3 text-xs sm:text-sm text-slate-200 overflow-y-auto custom-scroll">
+          <div class="rounded-2xl bg-white/5 p-3 border border-white/10">
+            <div class="font-bold text-emerald-300 mb-1">🎮 Controles</div>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <b>Moverse:</b> Flechas, <b>WASD</b> o joystick táctil izquierdo.</li>
+              <li>• <b>Atacar / Purificar:</b> <b>Clic izquierdo</b> en el mapa, <b>Espacio</b> o botón <b>ATACAR</b>.</li>
+              <li>• <b>Reclutar Aliado / Abrir Caja de Arma:</b> Acércate y presiona <b>E</b> o botón <b>HABLAR [E]</b>.</li>
+              <li>• <b>Cambiar Arma:</b> Teclas <b>1, 2, 3</b> o toca el arma en la barra inferior.</li>
+              <li>• <b>Curarse:</b> Tecla <b>H</b> o botón <b>🩹</b> arriba a la derecha.</li>
             </ul>
-        </nav>
-        <label for="nav-toggle" class="nav-toggle-label">&#9776;</label>
-    </header>
+          </div>
+          <div class="rounded-2xl bg-white/5 p-3 border border-white/10">
+            <div class="font-bold text-amber-300 mb-1">🤝 Los 6 Aliados del Equipo</div>
+            <p class="text-slate-300">
+              Encuentra y recluta a <b>Junior, Cristian, Daniel Boly, Lesly, Ashley y Douglas</b> repartidos entre la <b>Colonia Las Torres</b> y la <b>Ruta Central</b>. Te seguirán en formación y atacarán automáticamente a las sombras.
+            </p>
+          </div>
+          <div class="rounded-2xl bg-white/5 p-3 border border-white/10">
+            <div class="font-bold text-fuchsia-300 mb-1">✨ Liberar la Colonia López Arellano</div>
+            <p class="text-slate-300">
+              Viaja hacia el este hasta la <b>Colonia López Arellano</b>, destruye los <b>4 Núcleos de Maldad</b> y derrota al <b>Señor de la Sombra</b> para liberar a todos los habitantes y devolver la paz y la luz a la colonia.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <main>
-        <section class="hero">
-            <h1>Bienvenido a Mi Sitio Web, ALEXANDER GYM</h1>
-            <p>Te invito a ser parte de nuestro maravilloso equipo de socios que quieren tener. un nuevo estilo de vida. .</p>
-            <a href="#" class="cta-button">Explora Más</a>
-        </section>
+    <!-- Pantalla de Victoria: Colonia López Arellano Liberada -->
+    <div id="victory-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="glass-panel rounded-3xl max-w-lg w-full p-6 text-center border-2 border-amber-300/60 shadow-2xl">
+        <div class="text-5xl mb-2 animate-float-slow">🕊️☀️</div>
+        <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold mb-2">
+          ¡COLONIA LÓPEZ ARELLANO LIBERADA!
+        </div>
+        <h2 id="victory-title" class="font-display text-2xl font-bold text-amber-300 mb-2">
+          ¡Paz Restaurada en Choloma!
+        </h2>
+        <p id="victory-message" class="text-xs sm:text-sm text-slate-100 mb-4 leading-relaxed"></p>
+        <div id="victory-heroes-list" class="flex flex-wrap justify-center gap-1.5 mb-5"></div>
+        <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
+          <button id="btn-continue-exploring" type="button" class="btn-game px-4 py-2.5 rounded-2xl bg-emerald-400 text-slate-950 font-bold text-sm cursor-pointer">
+            Recorrer la Colonia en Paz
+          </button>
+          <button id="btn-restart-game" type="button" class="btn-game px-4 py-2.5 rounded-2xl bg-amber-400 text-slate-950 font-bold text-sm cursor-pointer">
+            Jugar de Nuevo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <section class="about">
-            <h2>Acerca de Nosotros</h2>
-            <p>Somos un equipo de profesionales apasionados por querer mejorar el estilo de vida de las personas, asi tengan un excelente fisico y salud. Nuestra misión es proporcionar información valiosa y soluciones a nuestros clientes.</p>
-        </section>
+  <script>
+    /**
+     * =========================================================================
+     * RESCATE EN CHOLOMA: DE LAS TORRES A LA LÓPEZ ARELLANO
+     * Juego de mundo abierto 2D con nombre personalizado, 6 aliados reclutables
+     * (Junior, Cristian, Daniel Boly, Lesly, Ashley, Douglas), armas encontrables
+     * y liberación completa de la Colonia López Arellano.
+     * =========================================================================
+     */
 
-        <!-- Puedes agregar más secciones aquí -->
-    </main>
+    (() => {
+      'use strict';
 
-    <!--chat por whatsapp-->
-    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-        <div class="elfsight-app-7bbfc650-e6d3-45ee-ba10-41bf7a84256f"></div>
+      // -----------------------------------------------------------------------
+      // 1. SISTEMA DE AUDIO (Web Audio API)
+      // -----------------------------------------------------------------------
+      class SoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.muted = false;
+        }
 
-    <!--lista musical-->
-    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-        <div class="elfsight-app-413ab507-2f66-4f2b-8ca5-dc63e3fca289"></div>
-    <!--chat por viber-->
-    
+        unlock() {
+          try {
+            if (!this.ctx) {
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (AudioCtx) this.ctx = new AudioCtx();
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+              this.ctx.resume();
+            }
+          } catch (e) {}
+        }
 
-    <footer>
-        <p>&copy; 2023 ALEXANDER GYM</p>
-    </footer>
+        toggleMute() {
+          this.muted = !this.muted;
+          if (!this.muted) this.unlock();
+          return this.muted;
+        }
 
+        playTone(freq, endFreq, duration, type = 'sine', volume = 0.08, delay = 0) {
+          if (this.muted) return;
+          try {
+            this.unlock();
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime + delay;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            if (endFreq !== null) {
+              osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), now + duration);
+            }
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.linearRampToValueAtTime(volume, now + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration + 0.02);
+          } catch (e) {}
+        }
 
+        step() {
+          this.playTone(135 + Math.random() * 25, 70, 0.05, 'triangle', 0.03);
+        }
+
+        meleeSwing() {
+          this.playTone(250, 95, 0.11, 'sawtooth', 0.065);
+        }
+
+        laserShot() {
+          this.playTone(880, 290, 0.12, 'triangle', 0.075);
+        }
+
+        solarShot() {
+          this.playTone(1180, 360, 0.16, 'sine', 0.09);
+          this.playTone(620, 220, 0.14, 'triangle', 0.06, 0.02);
+        }
+
+        hit() {
+          this.playTone(170, 60, 0.14, 'square', 0.07);
+        }
+
+        recruit() {
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((n, i) => this.playTone(n, n * 1.02, 0.18, 'triangle', 0.085, i * 0.07));
+        }
+
+        pickupWeapon() {
+          const notes = [440, 587.33, 880, 1174.66];
+          notes.forEach((n, i) => this.playTone(n, n, 0.2, 'sine', 0.09, i * 0.065));
+        }
+
+        purifyVictory() {
+          const chord = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+          chord.forEach((n, i) => this.playTone(n, n, 0.38, 'triangle', 0.1, i * 0.09));
+        }
+      }
+
+      const sound = new SoundEngine();
+
+      // -----------------------------------------------------------------------
+      // 2. DIMENSIONES DEL MUNDO Y ZONAS DE CHOLOMA
+      // -----------------------------------------------------------------------
+      // Mapa horizontal amplio de oeste a este:
+      // 1) Colonia Las Torres (x: 100 .. 1180)
+      // 2) Ruta Central / Puente Quebrada / Parque Industrial (x: 1180 .. 2260)
+      // 3) Colonia López Arellano (x: 2260 .. 3520)
+      const WORLD_W = 3600;
+      const WORLD_H = 2200;
+      const TILE_SIZE = 64;
+
+      function getRiverCenterX(y) {
+        return 1720 + Math.sin(y * 0.0038) * 75;
+      }
+
+      function getRiverHalfWidth() {
+        return 68;
+      }
+
+      const BRIDGES = [
+        { id: 'bridge_north', x: 1620, y: 520, w: 205, h: 115 },
+        { id: 'bridge_main', x: 1620, y: 1040, w: 205, h: 135 },
+        { id: 'bridge_south', x: 1620, y: 1620, w: 205, h: 115 }
+      ];
+
+      function isOnBridge(x, y, margin = 0) {
+        return BRIDGES.some(b =>
+          x >= b.x - margin &&
+          x <= b.x + b.w + margin &&
+          y >= b.y - margin &&
+          y <= b.y + b.h + margin
+        );
+      }
+
+      function isInWater(x, y, radius = 10) {
+        if (isOnBridge(x, y, 8)) return false;
+        const rx = getRiverCenterX(y);
+        const hw = getRiverHalfWidth();
+        return Math.abs(x - rx) < hw - radius * 0.3;
+      }
+
+      function detectZone(x, y) {
+        if (x < 1180) {
+          return { id: 'las_torres', name: 'Colonia Las Torres', color: '#22c55e' };
+        }
+        if (x < 2260) {
+          return { id: 'ruta_central', name: 'Ruta Central y Puente', color: '#38bdf8' };
+        }
+        return {
+          id: 'lopez_arellano',
+          name: state.lopezLiberated ? 'Colonia López Arellano (Liberada)' : 'Colonia López Arellano (Infectada)',
+          color: state.lopezLiberated ? '#facc15' : '#d946ef'
+        };
+      }
+
+      // -----------------------------------------------------------------------
+      // 3. ARMAS ENCONTRABLES DEL JUEGO
+      // -----------------------------------------------------------------------
+      const WEAPON_CATALOG = [
+        {
+          id: 'bat_light',
+          slot: 1,
+          name: 'Bate Linterna',
+          shortName: 'Bate Luz',
+          icon: '🔦',
+          type: 'melee',
+          damage: 26,
+          range: 76,
+          cooldown: 0.34,
+          color: '#fde047',
+          desc: 'Arma inicial de barrio con foco de luz purificadora.'
+        },
+        {
+          id: 'pulse_pistol',
+          slot: 2,
+          name: 'Pistola de Luz',
+          shortName: 'Pistola Luz',
+          icon: '🔫',
+          type: 'ranged',
+          damage: 34,
+          range: 420,
+          speed: 560,
+          cooldown: 0.28,
+          spread: 1,
+          color: '#38bdf8',
+          desc: 'Dispara rayos de energía que purifican sombras a distancia.'
+        },
+        {
+          id: 'solar_rifle',
+          slot: 3,
+          name: 'Rifle Rayo Solar',
+          shortName: 'Rayo Solar',
+          icon: '⚡',
+          type: 'ranged',
+          damage: 42,
+          range: 520,
+          speed: 680,
+          cooldown: 0.36,
+          spread: 3,
+          color: '#fbbf24',
+          desc: 'Arma suprema de triple haz solar para derrotar al mal en la López Arellano.'
+        }
+      ];
+
+      // -----------------------------------------------------------------------
+      // 4. ESTADO GLOBAL, ALIADOS (6 AMIGOS), CAJAS DE ARMAS, ENEMIGOS Y NÚCLEOS
+      // -----------------------------------------------------------------------
+      const worldObjects = [];
+      const allies = [];
+      const weaponCrates = [];
+      const pickups = [];
+      const enemies = [];
+      const darkCores = [];
+      const projectiles = [];
+      const particles = [];
+      const floatingTexts = [];
+      const civilians = [];
+
+      const state = {
+        started: false,
+        playerName: 'Aventurero',
+        lopezLiberated: false,
+        victoryShown: false,
+        player: {
+          x: 420,
+          y: 1100,
+          r: 16,
+          vx: 0,
+          vy: 0,
+          facingAngle: 0,
+          baseSpeed: 210,
+          sprintMult: 1.5,
+          hp: 120,
+          maxHp: 120,
+          stamina: 100,
+          maxStamina: 100,
+          potions: 3,
+          unlockedWeapons: ['bat_light'],
+          equippedWeaponId: 'bat_light',
+          attackCooldown: 0,
+          attackAnim: 0,
+          invulnTimer: 0,
+          stepTimer: 0,
+          currentZone: 'Colonia Las Torres'
+        }
+      };
+
+      // Definición de los 6 aliados solicitados
+      const ALLY_SPECS = [
+        {
+          id: 'junior',
+          name: 'Junior',
+          role: 'Explorador de Las Torres',
+          avatar: '🧢',
+          color: '#3b82f6',
+          hatColor: '#1d4ed8',
+          x: 640,
+          y: 940,
+          weaponColor: '#60a5fa',
+          dialogue: (hero) => `¡Qué onda ${hero}! Qué bueno verte. La sombra oscura avanzó desde la López Arellano y tiene asustados a los vecinos. ¡Cuenta conmigo, vamos juntos a liberar la colonia!`
+        },
+        {
+          id: 'cristian',
+          name: 'Cristian',
+          role: 'Defensor de la Cancha',
+          avatar: '⚽',
+          color: '#10b981',
+          hatColor: '#047857',
+          x: 880,
+          y: 1320,
+          weaponColor: '#34d399',
+          dialogue: (hero) => `¡${hero}, hermano! Estábamos cuidando la cancha de Las Torres cuando vimos esa niebla morada en la López. ¡Me uno al equipo para devolverle la paz a nuestra gente!`
+        },
+        {
+          id: 'daniel_boly',
+          name: 'Daniel Boly',
+          role: 'Estratega del Barrio',
+          avatar: '🎧',
+          color: '#f59e0b',
+          hatColor: '#b45309',
+          x: 1360,
+          y: 880,
+          weaponColor: '#fbbf24',
+          dialogue: (hero) => `¡Habla ${hero}! Soy Daniel Boly. Estuve revisando el puente hacia la López Arellano: hay núcleos oscuros alimentando el mal. ¡Con mi apoyo los destruiremos rápido!`
+        },
+        {
+          id: 'lesly',
+          name: 'Lesly',
+          role: 'Guía de Luz y Curación',
+          avatar: '🌟',
+          color: '#ec4899',
+          hatColor: '#be185d',
+          x: 1460,
+          y: 1360,
+          weaponColor: '#f472b6',
+          dialogue: (hero) => `¡Hola ${hero}! Qué alivio encontrarte. Preparé energía de luz para proteger al grupo en la López Arellano. ¡Nadie se quedará atrás, vamos a liberarlos!`
+        },
+        {
+          id: 'ashley',
+          name: 'Ashley',
+          role: 'Tiradora de Precisión',
+          avatar: '🏹',
+          color: '#8b5cf6',
+          hatColor: '#6d28d9',
+          x: 2020,
+          y: 820,
+          weaponColor: '#c084fc',
+          dialogue: (hero) => `¡${hero}, por aquí! Crucé el puente para vigilar la entrada de la López Arellano. Las personas están controladas por esa sombra, pero juntos las salvaremos.`
+        },
+        {
+          id: 'douglas',
+          name: 'Douglas',
+          role: 'Vanguardia Imparable',
+          avatar: '🛡️',
+          color: '#ef4444',
+          hatColor: '#b91c1c',
+          x: 2120,
+          y: 1380,
+          weaponColor: '#fb7185',
+          dialogue: (hero) => `¡Llegó el refuerzo, ${hero}! Soy Douglas y estaba esperando el momento para entrar a la López Arellano. ¡Con todo el grupo unido nada nos va a detener!`
+        }
+      ];
+
+      function addSolidRect(x, y, w, h, kind, extra = {}) {
+        worldObjects.push({ shape: 'rect', x, y, w, h, kind, solid: true, ...extra });
+      }
+
+      function addSolidCircle(x, y, r, kind, extra = {}) {
+        worldObjects.push({ shape: 'circle', x, y, r, kind, solid: true, ...extra });
+      }
+
+      let seed = 90210;
+      function rand() {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      }
+
+      function buildCholomaWorld() {
+        worldObjects.length = 0;
+        allies.length = 0;
+        weaponCrates.length = 0;
+        pickups.length = 0;
+        enemies.length = 0;
+        darkCores.length = 0;
+        projectiles.length = 0;
+        particles.length = 0;
+        floatingTexts.length = 0;
+        civilians.length = 0;
+        seed = 77341;
+
+        // --- 1. ESTRUCTURAS DE COLONIA LAS TORRES (Oeste) ---
+        addSolidRect(260, 760, 130, 92, 'house', { roof: '#2563eb', wall: '#fef3c7', label: 'Casa Las Torres' });
+        addSolidRect(540, 680, 135, 95, 'house', { roof: '#dc2626', wall: '#ffedd5' });
+        addSolidRect(280, 1340, 130, 92, 'house', { roof: '#059669', wall: '#ecfdf5' });
+        addSolidRect(580, 1420, 135, 95, 'house', { roof: '#d97706', wall: '#fef9c3' });
+        addSolidRect(940, 740, 128, 90, 'house', { roof: '#7c3aed', wall: '#f3e8ff' });
+
+        // --- 2. RUTA CENTRAL / SECTOR INDUSTRIAL (Centro) ---
+        addSolidRect(1300, 640, 150, 95, 'warehouse', { roof: '#475569', wall: '#cbd5e1' });
+        addSolidRect(1940, 560, 145, 92, 'warehouse', { roof: '#334155', wall: '#94a3b8' });
+        addSolidRect(1950, 1520, 145, 92, 'warehouse', { roof: '#475569', wall: '#cbd5e1' });
+
+        // --- 3. COLONIA LÓPEZ ARELLANO (Este - Zona Infectada) ---
+        addSolidRect(2440, 660, 135, 95, 'house_infected', { roof: '#581c87', wall: '#e2e8f0' });
+        addSolidRect(2780, 620, 140, 96, 'house_infected', { roof: '#4c1d95', wall: '#cbd5e1' });
+        addSolidRect(3120, 720, 135, 94, 'house_infected', { roof: '#6b21a8', wall: '#e2e8f0' });
+        addSolidRect(2460, 1460, 135, 95, 'house_infected', { roof: '#581c87', wall: '#cbd5e1' });
+        addSolidRect(2820, 1520, 140, 96, 'house_infected', { roof: '#4c1d95', wall: '#e2e8f0' });
+        addSolidRect(3150, 1420, 135, 94, 'house_infected', { roof: '#6b21a8', wall: '#cbd5e1' });
+
+        // --- 4. ÁRBOLES Y DECORACIÓN ---
+        for (let i = 0; i < 95; i++) {
+          const tx = 140 + rand() * (WORLD_W - 280);
+          const ty = 140 + rand() * (WORLD_H - 280);
+          // Mantener calles principales y spawn despejados
+          if (Math.abs(ty - 1100) < 115) continue;
+          if (Math.hypot(tx - 420, ty - 1100) < 150) continue;
+          if (Math.hypot(tx - 3020, ty - 1100) < 230) continue;
+          if (isInWater(tx, ty, 35) || isOnBridge(tx, ty, 35)) continue;
+
+          let blocked = false;
+          for (const o of worldObjects) {
+            if (o.shape === 'rect') {
+              const cx = Math.max(o.x, Math.min(tx, o.x + o.w));
+              const cy = Math.max(o.y, Math.min(ty, o.y + o.h));
+              if (Math.hypot(tx - cx, ty - cy) < 52) { blocked = true; break; }
+            } else if (Math.hypot(tx - o.x, ty - o.y) < o.r + 45) {
+              blocked = true; break;
+            }
+          }
+          if (!blocked) {
+            addSolidCircle(tx, ty, 20 + rand() * 8, 'tree', { infected: tx >= 2260 });
+          }
+        }
+
+        // --- 5. LOS 6 ALIADOS RECLUTABLES ---
+        ALLY_SPECS.forEach((sp, idx) => {
+          allies.push({
+            ...sp,
+            r: 16,
+            recruited: false,
+            attackCooldown: 0,
+            attackAnim: 0,
+            formationIndex: idx
+          });
+        });
+
+        // --- 6. CAJAS DE ARMAS ENCONTRABLES ---
+        weaponCrates.push(
+          {
+            id: 'crate_pistol',
+            weaponId: 'pulse_pistol',
+            name: 'Pistola de Luz',
+            x: 1040,
+            y: 1100,
+            opened: false
+          },
+          {
+            id: 'crate_solar',
+            weaponId: 'solar_rifle',
+            name: 'Rifle Rayo Solar',
+            x: 2180,
+            y: 1090,
+            opened: false
+          }
+        );
+
+        // --- 7. BOTIQUINES DE CURACIÓN POR EL MAPA ---
+        const medSpots = [
+          { x: 760, y: 1120 },
+          { x: 1520, y: 1090 },
+          { x: 2340, y: 1090 },
+          { x: 2740, y: 860 },
+          { x: 2740, y: 1340 }
+        ];
+        medSpots.forEach((pt, idx) => {
+          pickups.push({
+            id: 'med_' + idx,
+            x: pt.x,
+            y: pt.y,
+            collected: false,
+            bob: idx * 0.9
+          });
+        });
+
+        // --- 8. NÚCLEOS DE MALDAD EN LA COLONIA LÓPEZ ARELLANO ---
+        const coreSpecs = [
+          { id: 'core_nw', name: 'Núcleo Oscuro Norte', x: 2560, y: 820, hp: 140, maxHp: 140 },
+          { id: 'core_sw', name: 'Núcleo Oscuro Sur', x: 2560, y: 1380, hp: 140, maxHp: 140 },
+          { id: 'core_ne', name: 'Núcleo Oscuro Este', x: 3260, y: 920, hp: 160, maxHp: 160 },
+          { id: 'core_center', name: 'Corazón de la Sombra (Jefe)', x: 3020, y: 1100, hp: 280, maxHp: 280, isBossCore: true }
+        ];
+        coreSpecs.forEach(c => {
+          darkCores.push({
+            ...c,
+            r: c.isBossCore ? 34 : 24,
+            destroyed: false,
+            hitFlash: 0
+          });
+        });
+
+        // --- 9. ENEMIGOS: SOMBRAS CORRUPTAS Y JEFE OSCURO ---
+        const enemyList = [
+          // Patrullas en la Ruta Central
+          { name: 'Sombra Exploradora', x: 1480, y: 1060, hp: 55, dmg: 10, speed: 95, r: 17, type: 'shadow' },
+          { name: 'Acechador del Puente', x: 1920, y: 1120, hp: 65, dmg: 12, speed: 100, r: 17, type: 'shadow' },
+          // Fuerzas oscuras en Colonia López Arellano
+          { name: 'Sombra de la López', x: 2420, y: 980, hp: 75, dmg: 14, speed: 105, r: 18, type: 'shadow' },
+          { name: 'Sombra de la López', x: 2440, y: 1220, hp: 75, dmg: 14, speed: 105, r: 18, type: 'shadow' },
+          { name: 'Espectro Oscuro', x: 2680, y: 840, hp: 85, dmg: 15, speed: 110, r: 18, type: 'specter' },
+          { name: 'Espectro Oscuro', x: 2680, y: 1360, hp: 85, dmg: 15, speed: 110, r: 18, type: 'specter' },
+          { name: 'Guardián Corrupto', x: 2880, y: 960, hp: 95, dmg: 16, speed: 112, r: 19, type: 'specter' },
+          { name: 'Guardián Corrupto', x: 2880, y: 1240, hp: 95, dmg: 16, speed: 112, r: 19, type: 'specter' },
+          { name: 'Sombra Abisal', x: 3220, y: 1100, hp: 100, dmg: 17, speed: 115, r: 19, type: 'specter' },
+          { name: 'Señor de la Sombra', x: 3070, y: 1100, hp: 260, dmg: 22, speed: 108, r: 26, type: 'boss', isBoss: true }
+        ];
+
+        enemyList.forEach((e, idx) => {
+          enemies.push({
+            id: 'en_' + idx,
+            ...e,
+            maxHp: e.hp,
+            homeX: e.x,
+            homeY: e.y,
+            cooldown: 0,
+            hitFlash: 0,
+            alive: true
+          });
+        });
+
+        // --- 10. HABITANTES DE LA COLONIA LÓPEZ ARELLANO (Controlados hasta liberar) ---
+        const civSpots = [
+          { x: 2520, y: 1060, shirt: '#38bdf8' },
+          { x: 2640, y: 1180, shirt: '#f472b6' },
+          { x: 2820, y: 1040, shirt: '#34d399' },
+          { x: 2940, y: 1290, shirt: '#fbbf24' },
+          { x: 3140, y: 1020, shirt: '#a78bfa' },
+          { x: 3180, y: 1230, shirt: '#fb7185' }
+        ];
+        civSpots.forEach((c, i) => {
+          civilians.push({
+            id: 'civ_' + i,
+            x: c.x,
+            y: c.y,
+            homeX: c.x,
+            homeY: c.y,
+            shirt: c.shirt,
+            phase: i * 1.1
+          });
+        });
+      }
+
+      // -----------------------------------------------------------------------
+      // 5. UTILIDADES UI, PARTÍCULAS Y MENSAJES
+      // -----------------------------------------------------------------------
+      function showToast(text, icon = '✨') {
+        const banner = document.getElementById('toast-banner');
+        document.getElementById('toast-icon').textContent = icon;
+        document.getElementById('toast-text').textContent = text;
+        banner.classList.remove('opacity-0', '-translate-y-2');
+        banner.classList.add('opacity-100', 'translate-y-0');
+
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => {
+          banner.classList.remove('opacity-100', 'translate-y-0');
+          banner.classList.add('opacity-0', '-translate-y-2');
+        }, 3000);
+      }
+
+      function spawnParticles(x, y, color, count = 10, speed = 95) {
+        for (let i = 0; i < count; i++) {
+          const a = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+          const s = speed * (0.4 + Math.random() * 0.8);
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(a) * s,
+            vy: Math.sin(a) * s,
+            size: 2.5 + Math.random() * 3.5,
+            color,
+            life: 0.45 + Math.random() * 0.35,
+            maxLife: 0.8
+          });
+        }
+      }
+
+      function spawnFloatingText(x, y, text, color = '#fde047') {
+        floatingTexts.push({
+          x,
+          y,
+          vy: -40,
+          text,
+          color,
+          life: 1.05,
+          maxLife: 1.05
+        });
+      }
+
+      function getEquippedWeapon() {
+        return WEAPON_CATALOG.find(w => w.id === state.player.equippedWeaponId) || WEAPON_CATALOG[0];
+      }
+
+      function equipWeapon(weaponId) {
+        if (!state.player.unlockedWeapons.includes(weaponId)) return;
+        state.player.equippedWeaponId = weaponId;
+        const w = getEquippedWeapon();
+        document.getElementById('action-btn-icon').textContent = w.icon;
+        renderWeaponBar();
+        showToast(`Arma equipada: ${w.name}`, w.icon);
+      }
+
+      function renderWeaponBar() {
+        const bar = document.getElementById('weapon-bar');
+        bar.innerHTML = '';
+        WEAPON_CATALOG.forEach((w) => {
+          const unlocked = state.player.unlockedWeapons.includes(w.id);
+          const active = state.player.equippedWeaponId === w.id;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.disabled = !unlocked;
+          btn.className = `btn-game px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl border text-left transition flex items-center gap-1.5 cursor-pointer ${
+            active
+              ? 'bg-amber-400/25 border-amber-300 text-white shadow-lg'
+              : unlocked
+                ? 'glass-panel border-white/15 text-slate-200 hover:border-white/35'
+                : 'bg-slate-950/75 border-white/10 text-slate-500 opacity-60 cursor-not-allowed'
+          }`;
+          btn.innerHTML = `
+            <span class="text-sm sm:text-base">${unlocked ? w.icon : '🔒'}</span>
+            <div class="leading-tight">
+              <div class="text-[9px] font-bold text-amber-300">[${w.slot}]</div>
+              <div class="text-[10px] sm:text-xs font-bold truncate max-w-[68px] sm:max-w-[90px]">${unlocked ? w.shortName : 'Bloqueada'}</div>
+            </div>
+          `;
+          if (unlocked) {
+            btn.addEventListener('click', () => equipWeapon(w.id));
+          }
+          bar.appendChild(btn);
+        });
+      }
+
+      function renderAlliesPills() {
+        const container = document.getElementById('allies-roster-pills');
+        const recruitedCount = allies.filter(a => a.recruited).length;
+        document.getElementById('allies-count-badge').textContent = `${recruitedCount}/6 Unidos`;
+
+        container.innerHTML = allies.map(a => `
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-lg border ${
+            a.recruited
+              ? 'bg-emerald-500/25 border-emerald-400/45 text-emerald-200'
+              : 'bg-slate-900/80 border-white/10 text-slate-400'
+          }">
+            ${a.recruited ? '✅' : '•'} ${a.name}
+          </span>
+        `).join('');
+      }
+
+      function getCorruptionPercentage() {
+        if (state.lopezLiberated) return 0;
+        const aliveEnemies = enemies.filter(e => e.alive).length;
+        const aliveCores = darkCores.filter(c => !c.destroyed).length;
+        const total = enemies.length + darkCores.length;
+        const remaining = aliveEnemies + aliveCores;
+        return Math.max(0, Math.round((remaining / total) * 100));
+      }
+
+      function checkLiberationStatus() {
+        if (state.lopezLiberated) return;
+        const anyCoreLeft = darkCores.some(c => !c.destroyed);
+        const bossAlive = enemies.some(e => e.isBoss && e.alive);
+        const lopezEnemiesAlive = enemies.some(e => e.alive && e.x >= 2260);
+
+        if (!anyCoreLeft && !bossAlive && !lopezEnemiesAlive) {
+          state.lopezLiberated = true;
+          sound.purifyVictory();
+          spawnParticles(state.player.x, state.player.y, '#fde047', 45, 180);
+          spawnParticles(3020, 1100, '#38bdf8', 50, 220);
+
+          if (!state.victoryShown) {
+            state.victoryShown = true;
+            setTimeout(openVictoryModal, 650);
+          }
+        }
+      }
+
+      function openVictoryModal() {
+        const hero = state.playerName;
+        const recruitedNames = allies.filter(a => a.recruited).map(a => a.name);
+        const allSix = ['Junior', 'Cristian', 'Daniel Boly', 'Lesly', 'Ashley', 'Douglas'];
+
+        document.getElementById('victory-title').textContent = `¡${hero} Liberó la López Arellano!`;
+        document.getElementById('victory-message').innerHTML = `
+          Partiendo desde la <b>Colonia Las Torres</b>, <b>${hero}</b> junto a sus valientes aliados
+          <b>Junior, Cristian, Daniel Boly, Lesly, Ashley y Douglas</b> destruyeron los Núcleos de Maldad y disiparon la oscuridad.
+          ¡Ahora los habitantes de la <b>Colonia López Arellano</b> viven libres, felices y en paz!
+        `;
+
+        const heroesList = document.getElementById('victory-heroes-list');
+        heroesList.innerHTML = [hero, ...allSix].map((name, i) => `
+          <span class="px-2.5 py-1 rounded-xl text-xs font-bold border ${
+            i === 0
+              ? 'bg-amber-400/25 border-amber-300 text-amber-200'
+              : recruitedNames.includes(name)
+                ? 'bg-emerald-500/25 border-emerald-400/45 text-emerald-200'
+                : 'bg-sky-500/20 border-sky-400/35 text-sky-200'
+          }">
+            ${i === 0 ? '👑' : '⭐'} ${name}
+          </span>
+        `).join('');
+
+        openModal('victory-modal');
+      }
+
+      // -----------------------------------------------------------------------
+      // 6. CONTROLES DE TECLADO, RATÓN Y JOYSTICK TÁCTIL
+      // -----------------------------------------------------------------------
+      const keys = Object.create(null);
+      let joystickVec = { x: 0, y: 0 };
+      let joystickActive = false;
+      let sprintHeld = false;
+
+      window.addEventListener('keydown', (e) => {
+        if (!state.started) {
+          if (e.code === 'Enter') startGameFromInput();
+          return;
+        }
+        sound.unlock();
+        const code = e.code;
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(code)) {
+          e.preventDefault();
+        }
+        keys[code] = true;
+
+        if (code === 'ShiftLeft' || code === 'ShiftRight') sprintHeld = true;
+        if (code === 'Space') {
+          if (!isAnyModalOpen()) performAttack();
+        }
+        if (code === 'KeyE') {
+          if (!document.getElementById('dialogue-modal').classList.contains('hidden')) {
+            closeDialogue();
+          } else if (!isAnyModalOpen()) {
+            performInteract();
+          }
+        }
+        if (code === 'KeyH') usePotion();
+        if (code === 'Digit1') equipWeapon('bat_light');
+        if (code === 'Digit2') equipWeapon('pulse_pistol');
+        if (code === 'Digit3') equipWeapon('solar_rifle');
+        if (code === 'Escape') closeAllModals();
+      });
+
+      window.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') sprintHeld = false;
+      });
+
+      // Apuntar y atacar con clic en el canvas
+      const canvas = document.getElementById('world-canvas');
+      canvas.addEventListener('pointerdown', (e) => {
+        if (!state.started || isAnyModalOpen()) return;
+        sound.unlock();
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const worldTargetX = cam.x - viewW / 2 + clickX;
+        const worldTargetY = cam.y - viewH / 2 + clickY;
+        state.player.facingAngle = Math.atan2(worldTargetY - state.player.y, worldTargetX - state.player.x);
+        performAttack();
+      });
+
+      // Joystick virtual
+      const joystickZone = document.getElementById('joystick-zone');
+      const joystickKnob = document.getElementById('joystick-knob');
+      const MAX_KNOB_DIST = 34;
+
+      function updateJoystickFromClient(clientX, clientY) {
+        const rect = joystickZone.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let dx = clientX - cx;
+        let dy = clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > MAX_KNOB_DIST) {
+          dx = (dx / dist) * MAX_KNOB_DIST;
+          dy = (dy / dist) * MAX_KNOB_DIST;
+        }
+        joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        joystickVec.x = dist < 6 ? 0 : dx / MAX_KNOB_DIST;
+        joystickVec.y = dist < 6 ? 0 : dy / MAX_KNOB_DIST;
+      }
+
+      function resetJoystick() {
+        joystickActive = false;
+        joystickVec.x = 0;
+        joystickVec.y = 0;
+        joystickKnob.style.transform = 'translate(0px, 0px)';
+      }
+
+      joystickZone.addEventListener('pointerdown', (e) => {
+        sound.unlock();
+        joystickActive = true;
+        joystickZone.setPointerCapture(e.pointerId);
+        updateJoystickFromClient(e.clientX, e.clientY);
+      });
+      joystickZone.addEventListener('pointermove', (e) => {
+        if (joystickActive) updateJoystickFromClient(e.clientX, e.clientY);
+      });
+      joystickZone.addEventListener('pointerup', resetJoystick);
+      joystickZone.addEventListener('pointercancel', resetJoystick);
+
+      const btnSprint = document.getElementById('btn-sprint');
+      btnSprint.addEventListener('pointerdown', (e) => { e.preventDefault(); sprintHeld = true; });
+      btnSprint.addEventListener('pointerup', () => { sprintHeld = false; });
+      btnSprint.addEventListener('pointerleave', () => { sprintHeld = false; });
+
+      document.getElementById('btn-action').addEventListener('click', () => {
+        sound.unlock();
+        performAttack();
+      });
+      document.getElementById('btn-interact').addEventListener('click', () => {
+        sound.unlock();
+        performInteract();
+      });
+      document.getElementById('btn-heal-quick').addEventListener('click', usePotion);
+
+      // -----------------------------------------------------------------------
+      // 7. ACCIONES: ATACAR, RECLUTAR ALIADOS, RECOGER ARMAS Y CURAR
+      // -----------------------------------------------------------------------
+      function usePotion() {
+        const p = state.player;
+        if (p.potions <= 0) {
+          showToast('No te quedan botiquines', '🩹');
+          return;
+        }
+        if (p.hp >= p.maxHp) {
+          showToast('Tu vida ya está al máximo', '❤️');
+          return;
+        }
+        p.potions -= 1;
+        p.hp = Math.min(p.maxHp, p.hp + 50);
+        sound.recruit();
+        spawnParticles(p.x, p.y, '#4ade80', 14, 75);
+        spawnFloatingText(p.x, p.y - 24, '+50 ❤️', '#86efac');
+        showToast('¡Usaste un botiquín (+50 Vida)!', '🩹');
+      }
+
+      function performInteract() {
+        const p = state.player;
+
+        // 1. Revisar cajas de armas cercanas
+        for (const crate of weaponCrates) {
+          if (!crate.opened && Math.hypot(p.x - crate.x, p.y - crate.y) < 72) {
+            crate.opened = true;
+            if (!p.unlockedWeapons.includes(crate.weaponId)) {
+              p.unlockedWeapons.push(crate.weaponId);
+            }
+            equipWeapon(crate.weaponId);
+            sound.pickupWeapon();
+            spawnParticles(crate.x, crate.y, '#fde047', 24, 120);
+            spawnFloatingText(crate.x, crate.y - 24, `¡${crate.name}!`, '#fde047');
+            showToast(`¡Encontraste nueva arma: ${crate.name}!`, '🔫');
+            return;
+          }
+        }
+
+        // 2. Revisar aliados cercanos para reclutar o conversar
+        let nearestAlly = null;
+        let bestDist = 78;
+        for (const a of allies) {
+          const d = Math.hypot(p.x - a.x, p.y - a.y);
+          if (d < bestDist) {
+            bestDist = d;
+            nearestAlly = a;
+          }
+        }
+
+        if (nearestAlly) {
+          if (!nearestAlly.recruited) {
+            nearestAlly.recruited = true;
+            sound.recruit();
+            spawnParticles(nearestAlly.x, nearestAlly.y, '#34d399', 22, 115);
+            spawnFloatingText(nearestAlly.x, nearestAlly.y - 28, `¡${nearestAlly.name} se unió!`, '#6ee7b7');
+            renderAlliesPills();
+          } else {
+            sound.recruit();
+          }
+
+          const recruitedCount = allies.filter(a => a.recruited).length;
+          openDialogue({
+            name: nearestAlly.name,
+            role: `${nearestAlly.role} • Escuadrón (${recruitedCount}/6)`,
+            avatar: nearestAlly.avatar,
+            text: nearestAlly.dialogue(state.playerName),
+            choices: [
+              { label: '¡Vamos a liberar la López Arellano!', action: closeDialogue }
+            ]
+          });
+          return;
+        }
+
+        showToast('Acércate a un aliado o caja de armas para interactuar', '💬');
+      }
+
+      function performAttack() {
+        const p = state.player;
+        const weapon = getEquippedWeapon();
+        if (p.attackCooldown > 0) return;
+
+        p.attackCooldown = weapon.cooldown;
+        p.attackAnim = 0.18;
+
+        // Autoapuntar suavemente si hay un enemigo/núcleo muy cerca en la dirección
+        let aimAngle = p.facingAngle;
+        let bestTargetDist = weapon.range;
+        for (const en of enemies) {
+          if (!en.alive) continue;
+          const d = Math.hypot(en.x - p.x, en.y - p.y);
+          if (d < bestTargetDist) {
+            bestTargetDist = d;
+            aimAngle = Math.atan2(en.y - p.y, en.x - p.x);
+          }
+        }
+        for (const core of darkCores) {
+          if (core.destroyed) continue;
+          const d = Math.hypot(core.x - p.x, core.y - p.y);
+          if (d < bestTargetDist) {
+            bestTargetDist = d;
+            aimAngle = Math.atan2(core.y - p.y, core.x - p.x);
+          }
+        }
+        p.facingAngle = aimAngle;
+
+        if (weapon.type === 'melee') {
+          sound.meleeSwing();
+          const hitX = p.x + Math.cos(aimAngle) * 44;
+          const hitY = p.y + Math.sin(aimAngle) * 44;
+          spawnParticles(hitX, hitY, weapon.color, 8, 75);
+
+          // Dañar enemigos en arco frontal
+          for (const en of enemies) {
+            if (!en.alive) continue;
+            if (Math.hypot(en.x - hitX, en.y - hitY) <= weapon.range * 0.72 + en.r) {
+              damageEnemy(en, weapon.damage);
+            }
+          }
+          // Dañar núcleos oscuros en alcance
+          for (const core of darkCores) {
+            if (core.destroyed) continue;
+            if (Math.hypot(core.x - hitX, core.y - hitY) <= weapon.range * 0.72 + core.r) {
+              damageCore(core, weapon.damage);
+            }
+          }
+        } else {
+          // Arma de proyectiles de luz
+          if (weapon.id === 'solar_rifle') sound.solarShot();
+          else sound.laserShot();
+
+          const count = weapon.spread || 1;
+          for (let i = 0; i < count; i++) {
+            const offset = count === 1 ? 0 : (i - (count - 1) / 2) * 0.14;
+            const ang = aimAngle + offset;
+            projectiles.push({
+              x: p.x + Math.cos(ang) * 20,
+              y: p.y + Math.sin(ang) * 20,
+              vx: Math.cos(ang) * weapon.speed,
+              vy: Math.sin(ang) * weapon.speed,
+              damage: weapon.damage,
+              color: weapon.color,
+              life: weapon.range / weapon.speed,
+              fromAlly: false
+            });
+          }
+        }
+      }
+
+      function damageEnemy(en, dmg) {
+        if (!en.alive) return;
+        en.hp -= dmg;
+        en.hitFlash = 0.16;
+        spawnParticles(en.x, en.y, '#e879f9', 9, 90);
+        spawnFloatingText(en.x, en.y - 18, `-${dmg}`, '#f5d0fe');
+
+        if (en.hp <= 0) {
+          en.alive = false;
+          sound.hit();
+          spawnParticles(en.x, en.y, '#fde047', 22, 130);
+          spawnFloatingText(en.x, en.y - 26, '¡Purificado!', '#fde047');
+          if (en.isBoss) {
+            showToast('¡Derrotaste al Señor de la Sombra!', '👑');
+          }
+          checkLiberationStatus();
+        } else {
+          sound.hit();
+        }
+      }
+
+      function damageCore(core, dmg) {
+        if (core.destroyed) return;
+        core.hp -= dmg;
+        core.hitFlash = 0.16;
+        spawnParticles(core.x, core.y, '#c084fc', 10, 95);
+        spawnFloatingText(core.x, core.y - 22, `-${dmg}`, '#e879f9');
+
+        if (core.hp <= 0) {
+          core.destroyed = true;
+          sound.purifyVictory();
+          spawnParticles(core.x, core.y, '#fde047', 32, 155);
+          showToast(`¡Destruiste ${core.name}!`, '💥');
+          checkLiberationStatus();
+        } else {
+          sound.hit();
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 8. MODALES Y PANTALLA DE INICIO
+      // -----------------------------------------------------------------------
+      function openDialogue({ name, role, avatar, text, choices }) {
+        const modal = document.getElementById('dialogue-modal');
+        document.getElementById('dialogue-speaker').textContent = name;
+        document.getElementById('dialogue-role').textContent = role;
+        document.getElementById('dialogue-avatar').textContent = avatar;
+        document.getElementById('dialogue-text').textContent = text;
+
+        const choicesBox = document.getElementById('dialogue-choices');
+        choicesBox.innerHTML = '';
+        (choices || []).forEach(ch => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn-game px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold cursor-pointer';
+          btn.textContent = ch.label;
+          btn.addEventListener('click', ch.action);
+          choicesBox.appendChild(btn);
+        });
+        modal.classList.remove('hidden');
+      }
+
+      function closeDialogue() {
+        document.getElementById('dialogue-modal').classList.add('hidden');
+      }
+
+      function isAnyModalOpen() {
+        return !['dialogue-modal', 'quests-modal', 'help-modal', 'victory-modal']
+          .every(id => document.getElementById(id).classList.contains('hidden'));
+      }
+
+      function closeAllModals() {
+        ['dialogue-modal', 'quests-modal', 'help-modal', 'victory-modal']
+          .forEach(id => document.getElementById(id).classList.add('hidden'));
+      }
+
+      function openModal(id) {
+        closeAllModals();
+        if (id === 'quests-modal') renderQuestsModal();
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function renderQuestsModal() {
+        const list = document.getElementById('quests-list');
+        const recruitedCount = allies.filter(a => a.recruited).length;
+        const destroyedCores = darkCores.filter(c => c.destroyed).length;
+        const weaponsCount = state.player.unlockedWeapons.length;
+
+        const missions = [
+          {
+            title: '1. Reúne a tus 6 Aliados en Choloma',
+            desc: 'Encuentra y recluta a Junior, Cristian, Daniel Boly, Lesly, Ashley y Douglas entre Las Torres y la Ruta Central.',
+            done: recruitedCount >= 6,
+            progress: `${recruitedCount}/6 Aliados`
+          },
+          {
+            title: '2. Encuentra las Armas de Luz',
+            desc: 'Abre las cajas de suministros en el camino para obtener la Pistola de Luz y el Rifle Rayo Solar.',
+            done: weaponsCount >= 3,
+            progress: `${weaponsCount}/3 Armas`
+          },
+          {
+            title: '3. Destruye los Núcleos de Maldad',
+            desc: 'Ingresa a la Colonia López Arellano al este y purifica los 4 Núcleos Oscuros.',
+            done: destroyedCores >= 4,
+            progress: `${destroyedCores}/4 Núcleos`
+          },
+          {
+            title: '4. Libera la Colonia López Arellano',
+            desc: 'Derrota al Señor de la Sombra y a todas las fuerzas oscuras para devolver la paz a los habitantes.',
+            done: state.lopezLiberated,
+            progress: state.lopezLiberated ? '¡Liberada!' : `Mal restante: ${getCorruptionPercentage()}%`
+          }
+        ];
+
+        list.innerHTML = missions.map(m => `
+          <div class="rounded-2xl p-3.5 border ${m.done ? 'bg-emerald-500/15 border-emerald-400/40' : 'bg-white/5 border-white/10'}">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <span class="font-bold text-sm ${m.done ? 'text-emerald-300' : 'text-white'}">${m.done ? '✅' : '🔹'} ${m.title}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${m.done ? 'bg-emerald-500/25 text-emerald-200' : 'bg-amber-500/20 text-amber-300'}">${m.progress}</span>
+            </div>
+            <p class="text-xs text-slate-300">${m.desc}</p>
+          </div>
+        `).join('');
+      }
+
+      function startGameFromInput() {
+        sound.unlock();
+        const raw = document.getElementById('player-name-input').value.trim();
+        state.playerName = raw || 'Aventurero';
+        state.started = true;
+        document.getElementById('player-hud-name').textContent = state.playerName;
+        document.getElementById('start-screen').classList.add('hidden');
+        showToast(`¡Adelante ${state.playerName}! Reúne a tu equipo en Las Torres.`, '🚀');
+      }
+
+      document.getElementById('btn-start-game').addEventListener('click', startGameFromInput);
+      document.getElementById('btn-close-dialogue').addEventListener('click', closeDialogue);
+      document.getElementById('btn-quests').addEventListener('click', () => openModal('quests-modal'));
+      document.getElementById('quest-hud-btn').addEventListener('click', () => openModal('quests-modal'));
+      document.getElementById('btn-close-quests').addEventListener('click', closeAllModals);
+      document.getElementById('btn-help').addEventListener('click', () => openModal('help-modal'));
+      document.getElementById('btn-close-help').addEventListener('click', closeAllModals);
+      document.getElementById('btn-continue-exploring').addEventListener('click', closeAllModals);
+
+      document.getElementById('btn-restart-game').addEventListener('click', () => {
+        resetFullGame();
+        closeAllModals();
+      });
+
+      document.getElementById('btn-sound').addEventListener('click', () => {
+        const muted = sound.toggleMute();
+        document.getElementById('btn-sound').textContent = muted ? '🔇' : '🔊';
+      });
+
+      function resetFullGame() {
+        const p = state.player;
+        p.x = 420;
+        p.y = 1100;
+        p.hp = p.maxHp;
+        p.stamina = p.maxStamina;
+        p.potions = 3;
+        p.unlockedWeapons = ['bat_light'];
+        p.equippedWeaponId = 'bat_light';
+        p.invulnTimer = 0;
+        state.lopezLiberated = false;
+        state.victoryShown = false;
+        buildCholomaWorld();
+        renderWeaponBar();
+        renderAlliesPills();
+        showToast(`¡Nueva misión iniciada para ${state.playerName}!`, '🛡️');
+      }
+
+      // -----------------------------------------------------------------------
+      // 9. FÍSICA, COLISIONES, ALIADOS EN ESCUADRÓN Y ACTUALIZACIÓN
+      // -----------------------------------------------------------------------
+      function resolveWorldCollisions(x, y, radius) {
+        let nx = Math.max(radius + 24, Math.min(WORLD_W - radius - 24, x));
+        let ny = Math.max(radius + 24, Math.min(WORLD_H - radius - 24, y));
+
+        for (const obj of worldObjects) {
+          if (!obj.solid) continue;
+          if (obj.shape === 'circle') {
+            const dx = nx - obj.x;
+            const dy = ny - obj.y;
+            const d = Math.hypot(dx, dy);
+            const minD = radius + obj.r;
+            if (d < minD && d > 0.0001) {
+              nx += (dx / d) * (minD - d);
+              ny += (dy / d) * (minD - d);
+            }
+          } else if (obj.shape === 'rect') {
+            const cx = Math.max(obj.x, Math.min(nx, obj.x + obj.w));
+            const cy = Math.max(obj.y, Math.min(ny, obj.y + obj.h));
+            const dx = nx - cx;
+            const dy = ny - cy;
+            const d = Math.hypot(dx, dy);
+            if (d < radius) {
+              if (d > 0.0001) {
+                nx += (dx / d) * (radius - d);
+                ny += (dy / d) * (radius - d);
+              } else {
+                ny += radius;
+              }
+            }
+          }
+        }
+
+        if (isInWater(nx, ny, radius)) {
+          const canX = !isInWater(nx, y, radius);
+          const canY = !isInWater(x, ny, radius);
+          if (canX && !canY) ny = y;
+          else if (canY && !canX) nx = x;
+          else { nx = x; ny = y; }
+        }
+
+        return { x: nx, y: ny };
+      }
+
+      function update(dt) {
+        if (!state.started) return;
+
+        const p = state.player;
+        if (p.attackCooldown > 0) p.attackCooldown = Math.max(0, p.attackCooldown - dt);
+        if (p.attackAnim > 0) p.attackAnim = Math.max(0, p.attackAnim - dt);
+        if (p.invulnTimer > 0) p.invulnTimer = Math.max(0, p.invulnTimer - dt);
+
+        const blockingModal = !document.getElementById('quests-modal').classList.contains('hidden') ||
+                              !document.getElementById('help-modal').classList.contains('hidden') ||
+                              !document.getElementById('victory-modal').classList.contains('hidden');
+
+        let ix = 0;
+        let iy = 0;
+        if (!blockingModal) {
+          if (keys['ArrowLeft'] || keys['KeyA']) ix -= 1;
+          if (keys['ArrowRight'] || keys['KeyD']) ix += 1;
+          if (keys['ArrowUp'] || keys['KeyW']) iy -= 1;
+          if (keys['ArrowDown'] || keys['KeyS']) iy += 1;
+
+          if (Math.hypot(joystickVec.x, joystickVec.y) > 0.05) {
+            ix = joystickVec.x;
+            iy = joystickVec.y;
+          }
+        }
+
+        const mag = Math.hypot(ix, iy);
+        if (mag > 1) { ix /= mag; iy /= mag; }
+
+        const moving = mag > 0.05;
+        const wantsSprint = moving && sprintHeld && p.stamina > 3;
+        const speed = wantsSprint ? p.baseSpeed * p.sprintMult : p.baseSpeed;
+
+        if (wantsSprint) p.stamina = Math.max(0, p.stamina - 26 * dt);
+        else p.stamina = Math.min(p.maxStamina, p.stamina + 20 * dt);
+
+        if (moving) {
+          p.facingAngle = Math.atan2(iy, ix);
+          const res = resolveWorldCollisions(p.x + ix * speed * dt, p.y + iy * speed * dt, p.r);
+          p.x = res.x;
+          p.y = res.y;
+
+          p.stepTimer -= dt * (wantsSprint ? 1.4 : 1.0);
+          if (p.stepTimer <= 0) {
+            p.stepTimer = 0.34;
+            sound.step();
+          }
+        }
+
+        // Detectar zona actual
+        const z = detectZone(p.x, p.y);
+        if (p.currentZone !== z.name) {
+          p.currentZone = z.name;
+          showToast(`Zona: ${z.name}`, '📍');
+        }
+
+        // Recoger botiquines cercanos
+        for (const med of pickups) {
+          if (med.collected) continue;
+          if (Math.hypot(p.x - med.x, p.y - med.y) < p.r + 22) {
+            med.collected = true;
+            p.potions += 1;
+            sound.recruit();
+            spawnParticles(med.x, med.y, '#4ade80', 12, 80);
+            spawnFloatingText(med.x, med.y - 16, '+1 Botiquín 🩹', '#86efac');
+            showToast('¡Recogiste un botiquín de curación!', '🩹');
+          }
+        }
+
+        // Actualizar aliados reclutados (siguen en formación y disparan luz purificadora)
+        const recruitedAllies = allies.filter(a => a.recruited);
+        recruitedAllies.forEach((ally, idx) => {
+          if (ally.attackCooldown > 0) ally.attackCooldown = Math.max(0, ally.attackCooldown - dt);
+
+          // Posición objetivo alrededor del jugador
+          const angleOffset = (Math.PI * 2 * idx) / Math.max(1, recruitedAllies.length) + 0.6;
+          const desiredX = p.x + Math.cos(angleOffset) * 56;
+          const desiredY = p.y + Math.sin(angleOffset) * 56;
+          const distToDesired = Math.hypot(desiredX - ally.x, desiredY - ally.y);
+
+          if (distToDesired > 340) {
+            // Reagrupar si quedó lejos tras cruzar un puente
+            ally.x = desiredX;
+            ally.y = desiredY;
+          } else if (distToDesired > 10) {
+            const ang = Math.atan2(desiredY - ally.y, desiredX - ally.x);
+            const moveSpd = Math.min(255, distToDesired * 4.2);
+            const res = resolveWorldCollisions(
+              ally.x + Math.cos(ang) * moveSpd * dt,
+              ally.y + Math.sin(ang) * moveSpd * dt,
+              ally.r
+            );
+            ally.x = res.x;
+            ally.y = res.y;
+          }
+
+          // Ataque automático de cada aliado hacia enemigos o núcleos cercanos
+          if (ally.attackCooldown <= 0) {
+            let target = null;
+            let bestD = 320;
+            for (const en of enemies) {
+              if (!en.alive) continue;
+              const d = Math.hypot(en.x - ally.x, en.y - ally.y);
+              if (d < bestD) { bestD = d; target = en; }
+            }
+            if (!target) {
+              for (const core of darkCores) {
+                if (core.destroyed) continue;
+                const d = Math.hypot(core.x - ally.x, core.y - ally.y);
+                if (d < bestD) { bestD = d; target = core; }
+              }
+            }
+            if (target) {
+              ally.attackCooldown = 0.95 + (idx % 3) * 0.12;
+              const ang = Math.atan2(target.y - ally.y, target.x - ally.x);
+              projectiles.push({
+                x: ally.x + Math.cos(ang) * 16,
+                y: ally.y + Math.sin(ang) * 16,
+                vx: Math.cos(ang) * 500,
+                vy: Math.sin(ang) * 500,
+                damage: 16,
+                color: ally.weaponColor,
+                life: 0.65,
+                fromAlly: true
+              });
+            }
+          }
+        });
+
+        // Actualizar proyectiles de luz
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+          const pr = projectiles[i];
+          pr.x += pr.vx * dt;
+          pr.y += pr.vy * dt;
+          pr.life -= dt;
+
+          let hitSomething = false;
+          for (const en of enemies) {
+            if (!en.alive) continue;
+            if (Math.hypot(pr.x - en.x, pr.y - en.y) < en.r + 8) {
+              damageEnemy(en, pr.damage);
+              hitSomething = true;
+              break;
+            }
+          }
+          if (!hitSomething) {
+            for (const core of darkCores) {
+              if (core.destroyed) continue;
+              if (Math.hypot(pr.x - core.x, pr.y - core.y) < core.r + 8) {
+                damageCore(core, pr.damage);
+                hitSomething = true;
+                break;
+              }
+            }
+          }
+
+          if (hitSomething || pr.life <= 0) {
+            projectiles.splice(i, 1);
+          }
+        }
+
+        // Actualizar enemigos
+        for (const en of enemies) {
+          if (!en.alive) continue;
+          if (en.cooldown > 0) en.cooldown = Math.max(0, en.cooldown - dt);
+          if (en.hitFlash > 0) en.hitFlash = Math.max(0, en.hitFlash - dt);
+
+          const dPlayer = Math.hypot(p.x - en.x, p.y - en.y);
+          const dHome = Math.hypot(en.homeX - en.x, en.homeY - en.y);
+          const agroRadius = en.isBoss ? 380 : 280;
+
+          if (dPlayer < agroRadius && dHome < 460) {
+            const ang = Math.atan2(p.y - en.y, p.x - en.x);
+            const res = resolveWorldCollisions(
+              en.x + Math.cos(ang) * en.speed * dt,
+              en.y + Math.sin(ang) * en.speed * dt,
+              en.r
+            );
+            en.x = res.x;
+            en.y = res.y;
+          }
+
+          if (dPlayer < p.r + en.r + 5 && en.cooldown <= 0 && p.invulnTimer <= 0) {
+            en.cooldown = 1.05;
+            p.invulnTimer = 0.7;
+            p.hp = Math.max(0, p.hp - en.dmg);
+            sound.hit();
+            spawnParticles(p.x, p.y, '#ef4444', 12, 95);
+            spawnFloatingText(p.x, p.y - 22, `-${en.dmg} ❤️`, '#fca5a5');
+
+            if (p.hp <= 0) {
+              p.hp = p.maxHp;
+              p.x = 420;
+              p.y = 1100;
+              showToast('¡Fuiste herido! Regresaste a salvo a Colonia Las Torres.', '🏥');
+            }
+          }
+        }
+
+        // Actualizar partículas y textos flotantes
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const pt = particles[i];
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+          pt.vx *= 0.92;
+          pt.vy *= 0.92;
+          pt.life -= dt;
+          if (pt.life <= 0) particles.splice(i, 1);
+        }
+
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+          const ft = floatingTexts[i];
+          ft.y += ft.vy * dt;
+          ft.life -= dt;
+          if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+
+        updateHUD();
+      }
+
+      function updateHUD() {
+        const p = state.player;
+        document.getElementById('biome-badge').textContent = p.currentZone;
+        document.getElementById('hp-text').textContent = `${Math.ceil(p.hp)}/${p.maxHp}`;
+        document.getElementById('hp-bar').style.width = `${Math.round((p.hp / p.maxHp) * 100)}%`;
+
+        const stamPct = Math.round((p.stamina / p.maxStamina) * 100);
+        document.getElementById('stamina-text').textContent = `${stamPct}%`;
+        document.getElementById('stamina-bar').style.width = `${stamPct}%`;
+        document.getElementById('potions-hud-count').textContent = p.potions;
+
+        const corruption = getCorruptionPercentage();
+        const pill = document.getElementById('corruption-pill');
+        if (state.lopezLiberated) {
+          pill.textContent = '✨ Paz: 100%';
+          pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 shrink-0';
+        } else {
+          pill.textContent = `Mal: ${corruption}%`;
+        }
+
+        const recruitedCount = allies.filter(a => a.recruited).length;
+        const destroyedCores = darkCores.filter(c => c.destroyed).length;
+        const titleEl = document.getElementById('active-quest-title');
+        const progEl = document.getElementById('active-quest-progress');
+
+        if (state.lopezLiberated) {
+          titleEl.textContent = '¡Colonia López Arellano Liberada!';
+          progEl.textContent = `Héroes: ${state.playerName} y sus 6 aliados`;
+        } else if (recruitedCount < 6) {
+          titleEl.textContent = `Recluta a tus aliados (${recruitedCount}/6)`;
+          progEl.textContent = 'Busca a Junior, Cristian, Daniel Boly, Lesly, Ashley y Douglas';
+        } else {
+          titleEl.textContent = `Purifica la López Arellano (${destroyedCores}/4 Núcleos)`;
+          progEl.textContent = 'Destruye los Núcleos Oscuros y al Señor de la Sombra';
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 10. RENDERIZADO DEL MUNDO, CALLES, NIEBLA OSCURA Y MINIMAPA
+      // -----------------------------------------------------------------------
+      const ctx = canvas.getContext('2d');
+      const minimapCanvas = document.getElementById('minimap-canvas');
+      const minimapCtx = minimapCanvas.getContext('2d');
+      let viewW = window.innerWidth;
+      let viewH = window.innerHeight;
+
+      function resizeCanvas() {
+        if (!ctx) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        viewW = window.innerWidth;
+        viewH = window.innerHeight;
+        canvas.width = Math.floor(viewW * dpr);
+        canvas.height = Math.floor(viewH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      const cam = { x: state.player.x, y: state.player.y };
+
+      function drawTerrainAndStreets(timeSec) {
+        ctx.fillStyle = '#229954';
+        ctx.fillRect(0, 0, viewW, viewH);
+
+        const startX = Math.max(0, Math.floor((cam.x - viewW / 2) / TILE_SIZE) * TILE_SIZE);
+        const endX = Math.min(WORLD_W, Math.ceil((cam.x + viewW / 2) / TILE_SIZE) * TILE_SIZE);
+        const startY = Math.max(0, Math.floor((cam.y - viewH / 2) / TILE_SIZE) * TILE_SIZE);
+        const endY = Math.min(WORLD_H, Math.ceil((cam.y + viewH / 2) / TILE_SIZE) * TILE_SIZE);
+
+        for (let gx = startX; gx < endX; gx += TILE_SIZE) {
+          for (let gy = startY; gy < endY; gy += TILE_SIZE) {
+            const sx = gx - cam.x + viewW / 2;
+            const sy = gy - cam.y + viewH / 2;
+            const checker = ((gx + gy) / TILE_SIZE) % 2 === 0;
+
+            if (gx < 1180) {
+              // Colonia Las Torres: pradera vibrante
+              ctx.fillStyle = checker ? '#27ae60' : '#229954';
+            } else if (gx < 2260) {
+              // Ruta Central: tierra y pasto intermedio
+              ctx.fillStyle = checker ? '#4d7c0f' : '#3f6212';
+            } else {
+              // Colonia López Arellano: cambia de suelo sombrío a verde brillante al liberarse
+              if (state.lopezLiberated) {
+                ctx.fillStyle = checker ? '#2ecc71' : '#27ae60';
+              } else {
+                ctx.fillStyle = checker ? '#2e1065' : '#1e1b4b';
+              }
+            }
+            ctx.fillRect(sx, sy, TILE_SIZE + 0.5, TILE_SIZE + 0.5);
+          }
+        }
+
+        ctx.save();
+        ctx.translate(-cam.x + viewW / 2, -cam.y + viewH / 2);
+
+        // Cancha de fútbol de Colonia Las Torres
+        ctx.fillStyle = '#15803d';
+        ctx.fillRect(760, 1230, 220, 130);
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(760, 1230, 220, 130);
+        ctx.beginPath();
+        ctx.moveTo(870, 1230);
+        ctx.lineTo(870, 1360);
+        ctx.stroke();
+
+        // Carretera principal pavimentada de Las Torres hasta la López Arellano
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(180, 1055, 3220, 90);
+        // Avenidas transversales
+        ctx.fillRect(520, 620, 74, 960);
+        ctx.fillRect(1380, 620, 74, 960);
+        ctx.fillRect(2520, 600, 78, 1020);
+        ctx.fillRect(2980, 600, 78, 1020);
+
+        // Líneas amarillas viales
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([22, 18]);
+        ctx.beginPath();
+        ctx.moveTo(200, 1100);
+        ctx.lineTo(3380, 1100);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Río / Quebrada de Choloma y puentes
+        for (let y = 0; y <= WORLD_H; y += 24) {
+          const rx = getRiverCenterX(y);
+          const hw = getRiverHalfWidth();
+          ctx.fillStyle = '#0284c7';
+          ctx.fillRect(rx - hw, y - 12, hw * 2, 26);
+          ctx.fillStyle = 'rgba(186, 230, 253, 0.45)';
+          ctx.fillRect(rx - 20 + Math.sin(timeSec * 3 + y * 0.05) * 14, y - 2, 24, 4);
+        }
+
+        for (const b of BRIDGES) {
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(b.x + 8, b.y + 8, b.w - 16, b.h - 16);
+        }
+
+        // Letreros de bienvenida de cada colonia
+        drawZoneBanner(420, 995, '🏘️ COLONIA LAS TORRES', '#10b981');
+        drawZoneBanner(2340, 995, state.lopezLiberated ? '☀️ COLONIA LÓPEZ ARELLANO (EN PAZ)' : '⚠️ COLONIA LÓPEZ ARELLANO', state.lopezLiberated ? '#facc15' : '#e879f9');
+
+        ctx.restore();
+      }
+
+      function drawZoneBanner(x, y, text, borderColor) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.86)';
+        ctx.beginPath();
+        ctx.roundRect(x - 135, y - 18, 270, 30, 10);
+        ctx.fill();
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Fredoka, Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, x, y + 2);
+      }
+
+      function drawStructuresAndObjects(timeSec) {
+        ctx.save();
+        ctx.translate(-cam.x + viewW / 2, -cam.y + viewH / 2);
+
+        for (const o of worldObjects) {
+          if (o.shape === 'rect') {
+            ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            ctx.fillRect(o.x + 6, o.y + 8, o.w, o.h);
+
+            const liberatedHouse = o.kind === 'house_infected' && state.lopezLiberated;
+            ctx.fillStyle = liberatedHouse ? '#fef3c7' : (o.wall || '#fef3c7');
+            ctx.fillRect(o.x, o.y + 18, o.w, o.h - 18);
+
+            ctx.fillStyle = liberatedHouse ? '#0ea5e9' : (o.roof || '#dc2626');
+            ctx.beginPath();
+            ctx.moveTo(o.x - 8, o.y + 22);
+            ctx.lineTo(o.x + o.w / 2, o.y - 8);
+            ctx.lineTo(o.x + o.w + 8, o.y + 22);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(o.x + o.w / 2 - 11, o.y + o.h - 28, 22, 28);
+          } else if (o.shape === 'circle' && o.kind === 'tree') {
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            ctx.beginPath();
+            ctx.arc(o.x + 5, o.y + 8, o.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(o.x - 5, o.y + 4, 10, 14);
+
+            const isCorruptTree = o.infected && !state.lopezLiberated;
+            ctx.fillStyle = isCorruptTree ? '#581c87' : '#16a34a';
+            ctx.beginPath();
+            ctx.arc(o.x, o.y - 4, o.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Cajas de armas encontrables
+        for (const crate of weaponCrates) {
+          const bob = Math.sin(timeSec * 3.2) * 3;
+          ctx.fillStyle = crate.opened ? '#475569' : '#d97706';
+          ctx.beginPath();
+          ctx.roundRect(crate.x - 20, crate.y - 16 + bob, 40, 32, 8);
+          ctx.fill();
+          ctx.strokeStyle = crate.opened ? '#94a3b8' : '#fef08a';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(crate.opened ? 'Abierta' : `🎁 ${crate.name} [E]`, crate.x, crate.y - 24 + bob);
+        }
+
+        // Botiquines
+        for (const med of pickups) {
+          if (med.collected) continue;
+          const bob = Math.sin(timeSec * 3.5 + med.bob) * 3.5;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(med.x - 11, med.y - 11 + bob, 22, 22, 6);
+          ctx.fill();
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(med.x - 2.5, med.y - 7 + bob, 5, 14);
+          ctx.fillRect(med.x - 7, med.y - 2.5 + bob, 14, 5);
+        }
+
+        // Núcleos de Maldad en Colonia López Arellano
+        for (const core of darkCores) {
+          if (core.destroyed) continue;
+          const pulse = Math.sin(timeSec * 5) * 4;
+          ctx.fillStyle = 'rgba(192, 132, 252, 0.25)';
+          ctx.beginPath();
+          ctx.arc(core.x, core.y, core.r + 16 + pulse, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = core.hitFlash > 0 ? '#ffffff' : '#7e22ce';
+          ctx.beginPath();
+          ctx.moveTo(core.x, core.y - core.r);
+          ctx.lineTo(core.x + core.r * 0.8, core.y);
+          ctx.lineTo(core.x, core.y + core.r);
+          ctx.lineTo(core.x - core.r * 0.8, core.y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#f0abfc';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          // Barra de vida del núcleo
+          const bw = core.isBossCore ? 68 : 46;
+          ctx.fillStyle = 'rgba(15,23,42,0.85)';
+          ctx.fillRect(core.x - bw / 2, core.y - core.r - 14, bw, 6);
+          ctx.fillStyle = '#e879f9';
+          ctx.fillRect(core.x - bw / 2, core.y - core.r - 14, bw * Math.max(0, core.hp / core.maxHp), 6);
+        }
+
+        ctx.restore();
+      }
+
+      function drawCharacters(timeSec) {
+        ctx.save();
+        ctx.translate(-cam.x + viewW / 2, -cam.y + viewH / 2);
+
+        // 1. Habitantes de la Colonia López Arellano
+        for (const civ of civilians) {
+          const hop = state.lopezLiberated ? Math.abs(Math.sin(timeSec * 5 + civ.phase)) * 6 : 0;
+          ctx.fillStyle = civ.shirt;
+          ctx.beginPath();
+          ctx.arc(civ.x, civ.y - hop, 13, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = state.lopezLiberated ? '#fef08a' : '#7e22ce';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = state.lopezLiberated ? '#fef08a' : '#d8b4fe';
+          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(state.lopezLiberated ? '😊 ¡Libres!' : '😰 Controlado', civ.x, civ.y - 20 - hop);
+        }
+
+        // 2. Los 6 Aliados (Junior, Cristian, Daniel Boly, Lesly, Ashley, Douglas)
+        for (const ally of allies) {
+          const bob = Math.sin(timeSec * 3.5 + ally.x * 0.02) * 2;
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath();
+          ctx.ellipse(ally.x, ally.y + 15, 14, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = ally.color;
+          ctx.beginPath();
+          ctx.arc(ally.x, ally.y + bob, ally.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = ally.recruited ? '#6ee7b7' : '#ffffff';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = ally.hatColor;
+          ctx.beginPath();
+          ctx.arc(ally.x, ally.y - 8 + bob, 9, Math.PI, 0);
+          ctx.fill();
+
+          // Etiqueta con el nombre del aliado
+          const tagText = ally.recruited ? ally.name : `${ally.name} [E]`;
+          const tagWidth = Math.max(66, tagText.length * 6.8 + 14);
+          ctx.fillStyle = ally.recruited ? 'rgba(6, 78, 59, 0.88)' : 'rgba(15, 23, 42, 0.88)';
+          ctx.beginPath();
+          ctx.roundRect(ally.x - tagWidth / 2, ally.y - 38 + bob, tagWidth, 18, 8);
+          ctx.fill();
+
+          ctx.fillStyle = ally.recruited ? '#6ee7b7' : '#fde047';
+          ctx.font = 'bold 10.5px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(tagText, ally.x, ally.y - 25.5 + bob);
+        }
+
+        // 3. Enemigos (Sombras y Jefe Oscuro)
+        for (const en of enemies) {
+          if (!en.alive) continue;
+          const bob = Math.sin(timeSec * 5 + en.x) * 2.5;
+          ctx.fillStyle = en.hitFlash > 0 ? '#ffffff' : (en.isBoss ? '#4c1d95' : '#6b21a8');
+          ctx.beginPath();
+          ctx.arc(en.x, en.y + bob, en.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = en.isBoss ? '#f43f5e' : '#c084fc';
+          ctx.lineWidth = en.isBoss ? 3.5 : 2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(en.x - 5, en.y - 2 + bob, 3, 0, Math.PI * 2);
+          ctx.arc(en.x + 5, en.y - 2 + bob, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (en.hp < en.maxHp || en.isBoss) {
+            const bw = en.isBoss ? 58 : 34;
+            ctx.fillStyle = 'rgba(15,23,42,0.85)';
+            ctx.fillRect(en.x - bw / 2, en.y - en.r - 12, bw, 5);
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(en.x - bw / 2, en.y - en.r - 12, bw * Math.max(0, en.hp / en.maxHp), 5);
+          }
+        }
+
+        // 4. Jugador Principal con su Nombre Personalizado
+        const p = state.player;
+        if (!(p.invulnTimer > 0 && Math.floor(timeSec * 18) % 2 === 0)) {
+          ctx.fillStyle = 'rgba(0,0,0,0.34)';
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y + 15, 15, 6.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Destello de ataque cuerpo a cuerpo
+          const weapon = getEquippedWeapon();
+          if (p.attackAnim > 0 && weapon.type === 'melee') {
+            ctx.strokeStyle = 'rgba(254, 240, 138, 0.9)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 44, p.facingAngle - 0.85, p.facingAngle + 0.85);
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = '#0ea5e9';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          // Ojos orientados hacia donde apunta
+          const ex = Math.cos(p.facingAngle) * 4;
+          const ey = Math.sin(p.facingAngle) * 4;
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.arc(p.x - 3.5 + ex, p.y - 1 + ey, 2.2, 0, Math.PI * 2);
+          ctx.arc(p.x + 3.5 + ex, p.y - 1 + ey, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Nombre del jugador sobre su cabeza
+          const pWidth = Math.max(68, state.playerName.length * 7 + 16);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+          ctx.beginPath();
+          ctx.roundRect(p.x - pWidth / 2, p.y - 40, pWidth, 19, 8);
+          ctx.fill();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(state.playerName, p.x, p.y - 27);
+        }
+
+        // 5. Proyectiles de Luz
+        for (const pr of projectiles) {
+          ctx.fillStyle = pr.color;
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, pr.fromAlly ? 4.5 : 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 6. Partículas y Textos Flotantes
+        for (const pt of particles) {
+          ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          ctx.fillStyle = pt.color;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (const ft of floatingTexts) {
+          ctx.globalAlpha = Math.max(0, Math.min(1, ft.life / ft.maxLife));
+          ctx.fillStyle = ft.color;
+          ctx.font = 'bold 13px Fredoka, Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(ft.text, ft.x, ft.y);
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.restore();
+      }
+
+      function drawDarknessOverlay() {
+        // Niebla oscura solamente cuando el jugador entra a la Colonia López Arellano infectada
+        if (state.lopezLiberated || state.player.x < 2160) return;
+
+        const blend = Math.min(1, (state.player.x - 2160) / 260);
+        const px = state.player.x - cam.x + viewW / 2;
+        const py = state.player.y - cam.y + viewH / 2;
+
+        const grad = ctx.createRadialGradient(px, py, 75, px, py, 320);
+        grad.addColorStop(0, 'rgba(18, 7, 36, 0)');
+        grad.addColorStop(1, `rgba(18, 7, 36, ${(0.52 * blend).toFixed(3)})`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, viewW, viewH);
+      }
+
+      function drawMinimap() {
+        const mw = minimapCanvas.width;
+        const mh = minimapCanvas.height;
+        const sx = mw / WORLD_W;
+        const sy = mh / WORLD_H;
+
+        minimapCtx.clearRect(0, 0, mw, mh);
+
+        // 1. Colonia Las Torres
+        minimapCtx.fillStyle = '#16a34a';
+        minimapCtx.fillRect(0, 0, 1180 * sx, mh);
+
+        // 2. Ruta Central
+        minimapCtx.fillStyle = '#3f6212';
+        minimapCtx.fillRect(1180 * sx, 0, (2260 - 1180) * sx, mh);
+
+        // 3. Colonia López Arellano
+        minimapCtx.fillStyle = state.lopezLiberated ? '#22c55e' : '#3b0764';
+        minimapCtx.fillRect(2260 * sx, 0, (WORLD_W - 2260) * sx, mh);
+
+        // Calle principal
+        minimapCtx.fillStyle = '#64748b';
+        minimapCtx.fillRect(180 * sx, 1060 * sy, 3220 * sx, 80 * sy);
+
+        // Río
+        minimapCtx.fillStyle = '#0ea5e9';
+        minimapCtx.fillRect(1695 * sx, 0, 50 * sx, mh);
+
+        // Cajas de armas
+        minimapCtx.fillStyle = '#facc15';
+        for (const c of weaponCrates) {
+          if (!c.opened) minimapCtx.fillRect(c.x * sx - 2.5, c.y * sy - 2.5, 5, 5);
+        }
+
+        // Núcleos de maldad
+        minimapCtx.fillStyle = '#e879f9';
+        for (const core of darkCores) {
+          if (!core.destroyed) {
+            minimapCtx.beginPath();
+            minimapCtx.arc(core.x * sx, core.y * sy, 3.2, 0, Math.PI * 2);
+            minimapCtx.fill();
+          }
+        }
+
+        // Aliados
+        for (const a of allies) {
+          minimapCtx.fillStyle = a.recruited ? '#6ee7b7' : '#34d399';
+          minimapCtx.beginPath();
+          minimapCtx.arc(a.x * sx, a.y * sy, 2.8, 0, Math.PI * 2);
+          minimapCtx.fill();
+        }
+
+        // Jugador
+        minimapCtx.fillStyle = '#ffffff';
+        minimapCtx.beginPath();
+        minimapCtx.arc(state.player.x * sx, state.player.y * sy, 4, 0, Math.PI * 2);
+        minimapCtx.fill();
+      }
+
+      // -----------------------------------------------------------------------
+      // 11. BUCLE PRINCIPAL DE ANIMACIÓN
+      // -----------------------------------------------------------------------
+      let lastTime = performance.now();
+
+      function gameLoop(now) {
+        const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) / 1000));
+        lastTime = now;
+        const timeSec = now / 1000;
+
+        try {
+          update(dt);
+
+          const camLerp = 1 - Math.pow(0.0015, dt);
+          cam.x += (state.player.x - cam.x) * camLerp;
+          cam.y += (state.player.y - cam.y) * camLerp;
+
+          drawTerrainAndStreets(timeSec);
+          drawStructuresAndObjects(timeSec);
+          drawCharacters(timeSec);
+          drawDarknessOverlay();
+          drawMinimap();
+        } catch (err) {
+          console.error('Error en el ciclo del juego:', err);
+        }
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      buildCholomaWorld();
+      renderWeaponBar();
+      renderAlliesPills();
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    })();
+  </script>
 </body>
 </html>
-
-
-
